@@ -2,6 +2,7 @@
 const canvas = document.createElement('canvas');
 const context = canvas.getContext('2d');
 const socket = io('http://localhost:3000');
+let isReferee = false;
 let paddleIndex = 0;
 
 let width = 500;
@@ -161,12 +162,14 @@ function animate() {
   window.requestAnimationFrame(animate);
 }
 
-// Start Game, Reset Everything
-function startGame() {
+// load Game, Reset Everything
+function loadGame() {
   createCanvas();
   renderIntro();
-  
-  paddleIndex = 0;
+  socket.emit('ready') // we don't need to use ids because socket io automatically do the sync
+}
+function startGame() {
+  paddleIndex = isReferee ? 0 : 1;
   window.requestAnimationFrame(animate);
   canvas.addEventListener('mousemove', (e) => {
     playerMoved = true;
@@ -183,5 +186,16 @@ function startGame() {
 }
 
 // On Load
-startGame();
+loadGame();
 
+socket.on('connect', () => {
+  console.log(`Connected as... ${socket.id}`)
+});
+
+socket.on('start', (refereeId) => {
+  console.log('Referee is ', refereeId);
+  if(refereeId === socket.id) {
+    isReferee = true;
+  }
+  startGame(); // the game who is the referee is responsible to start the game
+});
