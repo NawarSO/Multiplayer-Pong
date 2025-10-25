@@ -180,6 +180,11 @@ function startGame() {
     if (paddleX[paddleIndex] > (width - paddleWidth)) {
       paddleX[paddleIndex] = width - paddleWidth;
     }
+    // every time the mouse move the paddle pos will change so we emit that to the server
+    socket.emit('paddleMove', {
+      xPosition: paddleX[paddleIndex],
+    }) 
+    
     // Hide Cursor
     canvas.style.cursor = 'none';
   });
@@ -198,4 +203,9 @@ socket.on('start', (refereeId) => {
     isReferee = true;
   }
   startGame(); // the game who is the referee is responsible to start the game
+});
+
+socket.on('paddleMove', (paddleData) => {
+  const opponentPaddleIndex = 1 - paddleIndex;
+  paddleX[opponentPaddleIndex] = paddleData.xPosition;
 });

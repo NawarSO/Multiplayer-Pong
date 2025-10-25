@@ -32,6 +32,9 @@ io.on('connection',(socket)=>{
         if(readyPlayerCount == 2) {
             io.emit('start', socket.id); // the seconde parameter is the referee player and in this case he is the second player
         } 
+    });
+    socket.on('paddleMove', (paddleData) => {
+        socket.broadcast.emit('paddleMove', paddleData);
     })
 });
 
