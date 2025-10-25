@@ -90,6 +90,11 @@ function ballReset() {
   ballX = width / 2;
   ballY = height / 2;
   speedY = 3;
+  socket.emit('ballMove',{
+    ballX,
+    ballY,
+    score,
+  });
 }
 
 // Adjust Ball Movement
@@ -100,6 +105,11 @@ function ballMove() {
   if (playerMoved) {
     ballX += speedX;
   }
+  socket.emit('ballMove',{
+    ballX,
+    ballY,
+    score,
+  });
 }
 
 // Determine What Ball Bounces Off, Score Points, Reset Ball
@@ -127,11 +137,13 @@ function ballBoundaries() {
       trajectoryX[0] = ballX - (paddleX[0] + paddleDiff);
       speedX = trajectoryX[0] * 0.3;
     } else {
+      //TODO: fix the comment
       // Reset Ball, add to Computer Score
       ballReset();
       score[1]++;
     }
   }
+  //TODO: fix the comment
   // Bounce off computer paddle (top)
   if (ballY < paddleDiff) {
     if (ballX >= paddleX[1] && ballX <= paddleX[1] + paddleWidth) {
@@ -156,9 +168,12 @@ function ballBoundaries() {
 
 // Called Every Frame
 function animate() {
+  //only the referee will calculate the pos of ball and the score
+  if(isReferee) {
   ballMove();
-  renderCanvas();
   ballBoundaries();
+  }
+  renderCanvas();
   window.requestAnimationFrame(animate);
 }
 
@@ -208,4 +223,9 @@ socket.on('start', (refereeId) => {
 socket.on('paddleMove', (paddleData) => {
   const opponentPaddleIndex = 1 - paddleIndex;
   paddleX[opponentPaddleIndex] = paddleData.xPosition;
+});
+
+socket.on('ballMove', (ballData) => {
+  //every var will take the value ballData contain(ballX, ballY, score) in the same order
+({ballX, ballY, score} = ballData); 
 });
