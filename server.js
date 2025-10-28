@@ -29,7 +29,7 @@ io.on('connection',(socket)=>{
     socket.on('ready', () => {
         console.log('player ready', socket.id);
         readyPlayerCount ++;
-        if(readyPlayerCount == 2) {
+        if(readyPlayerCount % 2 == 0) {
             io.emit('start', socket.id); // the seconde parameter is the referee player and in this case he is the second player
         } 
     });
@@ -38,6 +38,9 @@ io.on('connection',(socket)=>{
     })
     socket.on('ballMove', (ballData) => {
         socket.broadcast.emit('ballMove',ballData)
+    });
+    socket.on('disconnect', (reason) => {
+        console.log(`Client ${socket.id} disconnected for ${reason} `);
     });
 });
 
