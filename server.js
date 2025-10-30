@@ -1,46 +1,21 @@
 const dotenv = require('dotenv').config();
-const server = require('http').createServer();
-const express = require('express');
-const morgan = require('morgan');
+const http = require('http')
 const cors = require('cors');
-const { read } = require('fs');
 const PORT = process.env.PORT || 3000;
-const io = require("socket.io")(server, {
+const io = require('socket.io');
+const sockets = require('./sockets');
+
+const apiServer = require('./api');
+const httpServer = http.createServer(apiServer);
+
+const socketServer = io(httpServer, {
     cors: {
         origin: '*',
     }
 });
 
-const app = express();
-app.use(cors({
-    origin: '*'
-}));
-app.use(morgan("combined"));
-
-server.listen(PORT,()=>{
-    console.log(`server running on PORT ${PORT} ...`)
+httpServer.listen(PORT,()=>{
+    console.log(`The server running on http://localhost:${PORT}`);
 });
 
-let readyPlayerCount = 0;
-
-io.on('connection',(socket)=>{
-    console.log(`The user connected ${socket.id}`);
-
-    socket.on('ready', () => {
-        console.log('player ready', socket.id);
-        readyPlayerCount ++;
-        if(readyPlayerCount % 2 == 0) {
-            io.emit('start', socket.id); // the seconde parameter is the referee player and in this case he is the second player
-        } 
-    });
-    socket.on('paddleMove', (paddleData) => {
-        socket.broadcast.emit('paddleMove', paddleData);
-    })
-    socket.on('ballMove', (ballData) => {
-        socket.broadcast.emit('ballMove',ballData)
-    });
-    socket.on('disconnect', (reason) => {
-        console.log(`Client ${socket.id} disconnected for ${reason} `);
-    });
-});
-
+sockets.listen(socketServer);
